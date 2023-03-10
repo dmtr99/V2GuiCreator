@@ -9,6 +9,10 @@
 #Include Lib\RestoreCursors.ahk
 #Include Lib\ImagePut.ahk
 
+; #Include <Scintilla>
+; (Scintilla) ; Init class, or simply #INCLUDE the extension-lib at the top.
+
+
 If !pToken := Gdip_Startup()
 {
     MsgBox "Gdiplus failed to start. Please ensure you have gdiplus on your system"
@@ -46,10 +50,10 @@ oG.ControlList := Map()
     Global aoWinStyles := Array()
     aoWinStyles.Push(Styles("WS_BORDER", "0x800000","+/-Border. Creates a window that has a thin-line border.", "Border","0xC00000"))
     aoWinStyles.Push(Styles("WS_POPUP", "0x80000000","Creates a pop-up window. This style cannot be used with the WS_CHILD style."))
-    aoWinStyles.Push(Styles("WS_CAPTION", "0xC00000","+/-Caption. Creates a window that has a title bar. This style is a numerical combination of WS_BORDER and WS_DLGFRAME.", "Caption","-Border -0x400000 +E0x10000 -E0x100")) 
-    aoWinStyles.Push(Styles("WS_CLIPSIBLINGS", "0x4000000","Clips child windows relative to each other; that is, when a particular child window receives a WM_PAINT message, the WS_CLIPSIBLINGS style clips all other overlapping child windows out of the region of the child window to be updated. If WS_CLIPSIBLINGS is not specified and child windows overlap, it is possible, when drawing within the client area of a child window, to draw within the client area of a neighboring child window.")) 
-    aoWinStyles.Push(Styles("WS_DISABLED", "0x8000000","+/-Disabled. Creates a window that is initially disabled.","Disabled")) 
-    aoWinStyles.Push(Styles("WS_DLGFRAME", "0x400000","Creates a window that has a border of a style typically used with dialog boxes.")) 
+    aoWinStyles.Push(Styles("WS_CAPTION", "0xC00000","+/-Caption. Creates a window that has a title bar. This style is a numerical combination of WS_BORDER and WS_DLGFRAME.", "Caption","-Border -0x400000 +E0x10000 -E0x100"))
+    aoWinStyles.Push(Styles("WS_CLIPSIBLINGS", "0x4000000","Clips child windows relative to each other; that is, when a particular child window receives a WM_PAINT message, the WS_CLIPSIBLINGS style clips all other overlapping child windows out of the region of the child window to be updated. If WS_CLIPSIBLINGS is not specified and child windows overlap, it is possible, when drawing within the client area of a child window, to draw within the client area of a neighboring child window."))
+    aoWinStyles.Push(Styles("WS_DISABLED", "0x8000000","+/-Disabled. Creates a window that is initially disabled.","Disabled"))
+    aoWinStyles.Push(Styles("WS_DLGFRAME", "0x400000","Creates a window that has a border of a style typically used with dialog boxes."))
     aoWinStyles.Push(Styles("WS_HSCROLL", "0x100000", "Creates a window that has a horizontal scroll bar."))
     aoWinStyles.Push(Styles("WS_MAXIMIZE", "0x1000000", "Creates a window that is initially maximized."))
     aoWinStyles.Push(Styles("WS_MAXIMIZEBOX", "0x10000", "+/-MaximizeBox. Creates a window that has a maximize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.","MaximizeBox"))
@@ -304,7 +308,7 @@ oG.ControlList := Map()
     aoProgressStyles.Push(Styles("PBS_SMOOTH", "0x1",'+/-Smooth. The progress bar displays progress status in a smooth scrolling bar instead of the default segmented bar. When this style is present, the control automatically reverts to the Classic Theme appearance.',"Smooth"))
     aoProgressStyles.Push(Styles("PBS_VERTICAL", "0x4",'+/-Vertical. The progress bar displays progress status vertically, from bottom to top.',"Vertical"))
     aoProgressStyles.Push(Styles("PBS_MARQUEE", "0x8",'The progress bar moves like a marquee; that is, each change to its position causes the bar to slide further along its available length until it wraps around to the other side. A bar with this style has no defined position. Each attempt to change its position will instead slide the bar by one increment. This style is typically used to indicate an ongoing operation whose completion time is unknown.',""))
-    
+
     global aoTabStyles := Array()
     aoTabStyles.Push(Styles("TCS_SCROLLOPPOSITE", "0x1", 'Unneeded tabs scroll to the opposite side of the control when a tab is selected.', ""))
     aoTabStyles.Push(Styles("TCS_BOTTOM", "0x2", '+/-Bottom. Tabs appear at the bottom of the control instead of the top.', "Bottom"))
@@ -613,7 +617,7 @@ CreateCGui_V2GuiCreator(){
     myMenuBar.Add("&File", FileMenu)
     myMenuBar.Add("&Settings", SettingsMenu)
     myMenuBar.Add("&Reload", (*) => (Reload()))
-    
+
     MyGui.MenuBar := myMenuBar
 
     oToolbar := Toolbar()
@@ -633,7 +637,7 @@ CreateCGui_V2GuiCreator(){
     oToolbar.Add("", "Same size", (*) => (Selection_CopyProp("w", "max"),Selection_CopyProp("h"), GenerateCode(), UpdateSelectionBox()), IconLib , -62)
     oToolbar.Add("")
     oToolbar.Add("", "Preview", (*) => ((FileExist("test.ahk") ? FileDelete("test.ahk") : ""), FileAppend(ogEdit_script.value, "test.ahk"), Run("test.ahk")), IconLib , -73)
-    
+
     ; ogLine := myGui.AddText("x0 y0 w200 h1 Background0xDCDCDC")
     ogLine := myGui.AddGroupbox("x0 y-6 w200 h34 ")
     ogLine.LeftMargin := 0
@@ -644,7 +648,7 @@ CreateCGui_V2GuiCreator(){
     ogLV_Controls := MyGui.AddListView("x1 y+2 r20 w120 +0x2000 -Hdr -e0x200",["Controls"])
     ogLV_Controls.BottomMargin := 23
     ogLV_Controls.OnEvent("Click", Click_LV_Controls)
-    
+
     Global ImageListID := IL_Create(40)
 
     for key, value in Default.OwnProps(){
@@ -654,15 +658,32 @@ CreateCGui_V2GuiCreator(){
     for key, value in Default.OwnProps(){
         ogLV_Controls.Add("Icon" A_Index ,Key)
     }
-        
+
     ogEdit_script := MyGui.AddEdit("x+2 yp +Multi -E0x200")
+
+    ; Attempt to use Scintilla control, but this generates an error
+    ; ogEdit_script := MyGui.AddScintilla("x+2 yp w600 h500 DefaultOpt LightTheme")
+
+    ; Scintilla_SetAHKV2(ogEdit_script)
+
+    ; size := FileGetSize(sFile)
+    ; size := StrPut(FileRead(sFile),"UTF-8") ; alternative code
+    ; ptr := ogEdit_script.Doc.Create(3000+100)
+    ; ogEdit_script.Doc.ptr := ptr
+
+    ; ; ======================================================================
+    ; ; These must usually be set after changing document ptr.
+    ; ; ======================================================================
+    ; ogEdit_script.Tab.Use := false ; use spaces instad of tabs
+    ; ogEdit_script.Tab.Width := 4 ; number of spaces for a tab
+
     ogEdit_script.BottomMargin := 23
     ogEdit_script.LeftMargin:=1
     SB := MyGui.AddStatusBar()
     SB.SetParts(160, 160, 160,160)
     MyGui.Show("x" oSet.WinX " y" oSet.WinY " w" oSet.WinW " h" oSet.WinH " Hide")
     MyGui.Show()
-    
+
     GenerateCode()
     return
 
@@ -693,7 +714,7 @@ CreateCGui_V2GuiCreator(){
             FileMenu.Add()
             FileMenu.Add("&Exit", (*) => (ExitApp))
             myMenuBar.Add("&File", FileMenu)
-            
+
             WorkGui.MenuBar := myMenuBar
             oG.Window.MenuBar := "
             (
@@ -703,7 +724,7 @@ CreateCGui_V2GuiCreator(){
             FileMenu.Add("&Reload", (*) => (Reload()))
             FileMenu.Add()
             FileMenu.Add("&Exit", (*) => (ExitApp))
-            myMenuBar.Add("&File", FileMenu) 
+            myMenuBar.Add("&File", FileMenu)
             )"
             GenerateCode()
              return
@@ -716,7 +737,7 @@ CreateCGui_V2GuiCreator(){
             if (extraOption=""){
                 Exit
             }
-            PreCreateCtrl(ControlType, "Class" extraOption) 
+            PreCreateCtrl(ControlType, "Class" extraOption)
             return
         } else if (ControlType = "ActiveX") {
             title := "ActiveX"
@@ -727,7 +748,7 @@ CreateCGui_V2GuiCreator(){
             if (extraText = "") {
                 Exit
             }
-            PreCreateCtrl(ControlType, "", extraText) 
+            PreCreateCtrl(ControlType, "", extraText)
             return
         }
         PreCreateCtrl(ControlType,"")
@@ -771,7 +792,7 @@ CreateCGui_V2GuiCreator(){
         DllCall("LockWindowUpdate", "Uint", 0)
         GenerateCode()
     }
-    
+
     PreCreateCtrl(ControlType, ExtraOption :="", ExtraText := "", p*){
         if (!IsSet(WorkGui) or !IsObject(WorkGui)) {
             return
@@ -780,7 +801,7 @@ CreateCGui_V2GuiCreator(){
         CoordMode("Mouse", "Screen")
         xMouse_Prev := -1
         yMouse_Prev := -1
-        
+
         ogNewCtrl := WorkGui.Add(ControlType,ExtraOption, ExtraText = "" ? Default.%ControlType%.Text : Default.%ControlType%.Text ExtraText)
         if (!oSet.DefaultPos){
             Loop {
@@ -788,7 +809,7 @@ CreateCGui_V2GuiCreator(){
 
                 xMouse := oSet.SnapToGrid ? Round(xMouse/5)*5 : xMouse
                 yMouse := oSet.SnapToGrid ? Round(yMouse/5)*5 : yMouse
-                
+
                 WinGetClientPos(&xWin, &yWin, , , WorkGui)
                 if (xMouse_Prev != xMouse or yMouse_Prev != yMouse) {
                     ; ToolTip("MouseX:[" xMouse-xWin "]")
@@ -840,12 +861,12 @@ CreateCGui_V2GuiCreator(){
                     }
                 }
             }
-            
+
         }
         ogNewCtrl.Visible := 0
         MouseGetPos(&xMouse, &yMouse, &WinHwndMouse, &ControlHwndMouse, 2)
         GuiControlObj := GuiCtrlFromHwnd(ControlHwndMouse)
-        
+
         if (GuiControlObj.Hasprop("Type") and SubStr(GuiControlObj.Type,1,3)="tab"){
             GuiControlObj.UseTab(GuiControlObj.Value)
             ogNewCtrl.ActiveTabCtrl := GuiControlObj
@@ -862,7 +883,7 @@ CreateCGui_V2GuiCreator(){
 
         ogNewCtrl.Redraw()
         oControl := Default.%ControlType%
-        
+
         aNameList := Map()
         For Index, oControlItem in oG.ControlList{
             aNameList[oControlItem.oName]:= 1
@@ -886,8 +907,8 @@ CreateCGui_V2GuiCreator(){
             ogNewCtrl.x := xCtrl
             ogNewCtrl.y := yCtrl
             if (!oSet.DefaultSize){
-                ogNewCtrl.h := hCtrl
-                ogNewCtrl.w := wCtrl
+                ogNewCtrl.h := isSet(hCtrl) ? hCtrl : ""
+                ogNewCtrl.w := isSet(wCtrl) ? wCtrl : ""
             }
         }
         ogNewCtrl.CtrlName := "Control_" oG.ControlList.index
@@ -964,8 +985,8 @@ WorkGui_Create(*) {
     Hotkey "Right", (*) => (Selection_Move(1,0) , GenerateCode(), UpdateSelectionBox())
     Hotkey "Up", (*) => (Selection_Move(0,-1) , GenerateCode(), UpdateSelectionBox())
     Hotkey "Down", (*) => (Selection_Move(0,1) , GenerateCode(), UpdateSelectionBox())
-        
-         
+
+
     GenerateCode()
 
     Gui_ContextMenu(GuiObj, GuiCtrlObj, Item, IsRightClick, X, Y) {
@@ -992,12 +1013,12 @@ WorkGui_Create(*) {
             GuiCtrlObj.Add(GuiCtrlObj.Array)
             ;  := aTemp
             Sleep(300)
-            
+
             GenerateCode()
         }
     }
 
-    
+
     Gui_Size(thisGui, MinMax, Width, Height){
         oG.Window.w := Width
         oG.Window.h := Height
@@ -1024,9 +1045,9 @@ WorkGui_Import(*) {
         if GetKeyState("F12"){
             break
         }
-        
+
     }
-    
+
     ToolTip("")
     Global WorkGui, SelGui
     Global oG := {}
@@ -1121,12 +1142,12 @@ WorkGui_Import(*) {
         oG.ControlList[n].y := ctrlY
         oG.ControlList[n].w := ctrlWidth
         oG.ControlList[n].h := ctrlHeight
-        
+
         If (Control_Type = "Button") {
             If (ControlType == 1 or (ControlStyle & 0x1)) { ;BS_DEFPUSHBUTTON
                 Options .= " +Default"
             }
-            
+
         } Else If (Control_Type == "Edit") {
             Options .= !(ControlExStyle & 0x200) ? " -E0x200" : "" ; no border
             Options .= (ControlStyle & 0x2000) ? " +Number" : "" ; ES_NUMBER
@@ -1187,7 +1208,7 @@ WorkGui_Import(*) {
             oG.ControlList[n].ActiveTab := TabLabels[CurSel]
         } Else If (Control_Type == "Progress") {
             oG.ControlList[n].Text := SendMessage(0x408, 0, 0,ClassNN , "ahk_id " WinID)	; PBM_GETPOS
-             
+
             If !(ControlStyle & 0x1) {
                 Options .= " -Smooth"
             }
@@ -1238,18 +1259,18 @@ WorkGui_Import(*) {
         }
 
         Enabled := ControlGetEnabled(controlHwnd)
-        
+
         If (ControlStyle & 0x08000000) {
             Options .= " +Disabled"
         }
         oG.ControlList[n].ControlType := Control_Type
         ; oG.ControlList[n].Options := Options
         oG.ControlList[n].Options := ControlGetAHKOptions(Control_Type, ControlStyle, ControlExStyle)
-         
+
     }
     ; Separate the Tabs
     oTabs := Map()
-    
+
     for n, oControl in oG.ControlList {
         if (oControl.ControlType="Tab3"){
             oTabs[n]:= oControl
@@ -1357,7 +1378,7 @@ Gui_Window_Properties(p*) {
 
     ogTab_Prop.UseTab("Options")
     ogLV_Opt := ogProp.AddListView("Checked -HScroll -Hdr", ["Options","oName"])
-    
+
     For PropName, oProp in DefaultWinOpt.OwnProps() {
         ogLV_Opt.Add(, oProp.Name,PropName)
     }
@@ -1374,7 +1395,7 @@ Gui_Window_Properties(p*) {
         }
     }
     ogLV_Events.ModifyCol(1, 100)
-    
+
     ogTab_Prop.UseTab("")
     ogBut_OK := ogProp.AddButton("w80", "OK")
     ogBut_Cancel := ogProp.AddButton("x+5 w80", "Cancel")
@@ -1426,7 +1447,7 @@ Gui_Window_Properties(p*) {
             oG.Window.name := ogEdit_Name.Value
             WorkGui.name := ogEdit_Name.Value
         }
-        
+
         (ogEdit_Name.Value != "") ? WorkGui.Name := ogEdit_Name.Value: ""
         ;WorkGui.Move(ogEdit_xWin.value, ogEdit_yWin.value, ogEdit_wWin.value, ogEdit_hWin.value)
 
@@ -1504,7 +1525,7 @@ GuiCtrl_Properties(GuiCtrlObj) {
     ogEdit_xCtrl.Enabled := ogCB_x.value
     ogCB_x.OnEvent("Click",(*)=>(ogEdit_xCtrl.Enabled := ogCB_x.value))
     ogProp.Add("UpDown", "Range0-99999", xCtrl)
-    
+
     ogCB_y := ogProp.AddCheckbox("x+20 yp+4 w40 ", "Y:")
     IsNumber(yCtrl) & ogCB_y.Value := True
     ogEdit_yCtrl := ogProp.AddEdit("x+5 yp-4 w50 h22 +Number", yCtrl)
@@ -1560,10 +1581,10 @@ GuiCtrl_Properties(GuiCtrlObj) {
             ogLV_Events.Add(, oEvent.EventName)
         }
     }
-    
+
     ogLV_Events.ModifyCol(1, 100)
     ogCB_Event_Functions := ogProp.AddCheckbox("w80", "Function")
-    
+
     ogTab_Prop.UseTab("")
     ogBut_OK := ogProp.AddButton("w80", "OK")
     ogBut_Cancel := ogProp.AddButton("x+5 w80", "Cancel")
@@ -1599,7 +1620,7 @@ GuiCtrl_Properties(GuiCtrlObj) {
     }
 
     Click_PropApply(*) {
-        
+
         oCtrl := oG.ControlList[GuiCtrlObj.CtrlName]
         if (!oCtrl.HasProp("Array")){
             oCtrl.text := ogEdit_Text.Value
@@ -1640,7 +1661,7 @@ GuiCtrl_Properties(GuiCtrlObj) {
             oCtrl.h := ogEdit_hCtrl.Value
             ControlMove(, , ,oCtrl.h , GuiCtrlObj)
         }
-        
+
         loop ogLV_Events.GetCount()
         {
             Event := ogLV_Events.GetText(A_Index)
@@ -1659,7 +1680,7 @@ GuiCtrl_Properties(GuiCtrlObj) {
                         oCtrl.Events.DeleteProp(Event)
                     }
                 }
-                
+
             }
         }
         oG.ControlList[GuiCtrlObj.CtrlName] := oCtrl
@@ -1673,7 +1694,7 @@ GenerateCode() {
         return
     }
     CRLF := "`n`r"
-    Header := "#SingleInstance Force" . CRLF CRLF
+    Header := "#SingleInstance Force" CRLF "#Requires AutoHotkey v2.0-a" CRLF CRLF
     Indent := A_Tab
     ; Keep track of the active tab
     GuiTabCtrl := ""
@@ -1686,7 +1707,7 @@ GenerateCode() {
     Code .= Indent oG.Window.oName ' := Gui(' ', "' oG.Window.title '")' CRLF
     Code .= oG.Window.name= "" ? "" :  Indent oG.Window.oName '.name := "' oG.Window.name '"' CRLF
 
-    
+
     Options := ""
     For OptionName, oOption in oG.Window.Options.OwnProps() {
         if oOption.HasProp("Option"){
@@ -1694,14 +1715,14 @@ GenerateCode() {
         }
     }
     Code .= Options="" ? "" :Indent oG.Window.oName '.Opt("' Options '")' CRLF
-    
+
     For EventName, oEvent in oG.Window.Events.OwnProps() {
         Code .= Indent oG.Window.oName '.OnEvent("' oEvent.EventName '", (' oEvent.Parameters ')=>())' CRLF
     }
 
-    Code .= oG.Window.HasProp("MenuBar") ? CRLF Indent "; MenuBar of Gui" CRLF GenerateMenuCode(oG.Window.MenuBar) Indent oG.Window.oName ".MenuBar := " oG.Window.MenuBar.oName CRLF CRLF : "" 
+    Code .= oG.Window.HasProp("MenuBar") ? CRLF Indent "; MenuBar of Gui" CRLF GenerateMenuCode(oG.Window.MenuBar) Indent oG.Window.oName ".MenuBar := " oG.Window.MenuBar.oName CRLF CRLF : ""
     ; Code .= (oG.Window.HasProp("MenuBar") and oG.Window.MenuBar != "") ? CRLF Indent StrReplace(oG.Window.MenuBar, "`n", "`n" Indent) CRLF Indent oG.Window.oName '.MenuBar := MyMenuBar' CRLF CRLF : ""
-    
+
     Code .= (oG.Window.HasProp("BackColor") and oG.Window.BackColor != "") ? Indent oG.Window.oName '.BackColor := ' oG.Window.BackColor CRLF : ""
     Code .= CRLF
 
@@ -1729,7 +1750,7 @@ GenerateCode() {
                 Text := (Text = "" && oControl.ControlType="Picture") ? "mspaint.exe" : Text
                 Text := InStr(Text,'"') ? "'" Text "'" :  '"' Text '"'
             }
-            
+
             Options := (oControl.HasProp("x") and oControl.x != "") ? "x" oControl.x : ""
             Options .= (oControl.HasProp("y") and oControl.y != "") ? " y" oControl.y : ""
             Options .= (oControl.HasProp("w") and oControl.w != "") ? " w" oControl.w : ""
@@ -1739,7 +1760,7 @@ GenerateCode() {
             Options := (Options = "") ? "" : '"' trim(Options) '"'
 
             Code .= (oControl.ControlType = "" or oControl.ControlType ~= "i)Gui|Toolbar") ? Indent "; " : Indent ; comment out not defined types
-            Code .=  oControl.oName ' := ' oG.Window.oName '.Add("' oControl.ControlType '", ' Options ', ' Text ')' CRLF
+            Code .=  oControl.oName ' := ' oG.Window.oName '.Add' oControl.ControlType '(' Options ', ' Text ')' CRLF
             If (oControl.ControlType ~= "DropDownList|ComboBox" and oControl.HasProp("text") and oControl.text !=""){
                 Code .= Indent oControl.oName '.text := "' oControl.text '"' CRLF
             }
@@ -1789,11 +1810,13 @@ GenerateCode() {
                     }
                 }
             }
-            
+
         }
     }
     Code .= '}' CRLF
     ogEdit_script.Text := ""
+    ; ControlSetText(Header,ogEdit_script.hwnd)
+    ; ogEdit_script.Text := StrReplace(Header Code,"`r")
     ogEdit_script.Value := Header Code
 }
 
@@ -1873,8 +1896,9 @@ WorkGui_LBUTTON(*){
         return
     }
     WinGetClientPos(&WinX, &WinY, , , WorkGui)
-    GuiControlObj := GuiCtrlFromHwnd(ControlHwndMouse)
-    
+
+    GuiControlObj := (ControlHwndMouse != "") ? GuiCtrlFromHwnd(ControlHwndMouse) : ControlHwndMouse
+
     MouseXWin := MouseX - WinX
     MouseYWin := MouseY - WinY
     cursor := "Default"
@@ -1930,7 +1954,7 @@ WorkGui_LBUTTON(*){
             xMouse := oSet.SnapToGrid ? Round(xMouse / 5) * 5 : xMouse
             yMouse := oSet.SnapToGrid ? Round(yMouse / 5) * 5 : yMouse
             if (xMouse_Prev != xMouse or yMouse_Prev != yMouse) {
-                
+
                 XCtrl := xInit - xMouseInit + xMouse
                 YCtrl := yInit - yMouseInit + yMouse
 
@@ -2002,7 +2026,7 @@ WorkGui_LBUTTON(*){
                 UpdateSelectionBox()
                 WinRedraw(SelGui)
             }
-            
+
             xMouse_Prev := xMouse
             yMouse_Prev := yMouse
             if !GetKeyState("LButton") {
@@ -2018,7 +2042,7 @@ WorkGui_LBUTTON(*){
                 return
             }
         }
-        
+
     }
     if (GuiControlObj.HasProp("oName") and GuiControlObj.Gui = WorkGui){
         GuiControlObj.GetPos(&X,&Y,&W,&H)
@@ -2062,7 +2086,7 @@ WorkGui_LBUTTON(*){
             }
         }
     }
-    UpdateSelectionBox() 
+    UpdateSelectionBox()
 }
 
 WorkGui_Delete(*){
@@ -2207,7 +2231,7 @@ WM_MOUSEMOVE(wParam, lParam, msg, hwnd) {
         cursor := "Default"
         xHotspot := 0
         yHotspot := 0
-        
+
         if (WorkGui.Selection.HasProp("X1") and WorkGui.Selection.X1 !=""){
             if (Abs(MouseXWin - WorkGui.Selection.X1) < 5 and Abs(MouseYWin - WorkGui.Selection.Y1) < 5) or (Abs(MouseXWin - WorkGui.Selection.X2) < 5 and Abs(MouseYWin - WorkGui.Selection.Y2) < 5) {
                 cursor := "SIZENWSE"
@@ -2221,7 +2245,7 @@ WM_MOUSEMOVE(wParam, lParam, msg, hwnd) {
                 cursor := "SizeAll"
             }
         }
-        
+
         if (cursor_Old != cursor) {
             Cursor_Old := cursor
             ; ImageDestroy(A_Cursor)
@@ -2314,7 +2338,7 @@ UpdateSelectionBox() {
             }
         }
     }
-    
+
 
     Gdip_DeleteBrush(pBrushWhite)
     Gdip_DeletePen(pPenSelect)
@@ -2353,41 +2377,41 @@ UpdateSelectionBox() {
 ColorSelect(Color := 0, hwnd := 0, &custColorObj := "",disp:=false) {
     Static p := A_PtrSize
     disp := disp ? 0x3 : 0x1 ; init disp / 0x3 = full panel / 0x1 = basic panel
-    
+
     If (custColorObj.Length > 16)
         throw Error("Too many custom colors.  The maximum allowed values is 16.")
-    
+
     Loop (16 - custColorObj.Length)
         custColorObj.Push(0) ; fill out custColorObj to 16 values
-    
+
     CUSTOM := Buffer(16 * 4, 0) ; init custom colors obj
     CHOOSECOLOR := Buffer((p=4)?36:72,0) ; init dialog
-    
+
     If (IsObject(custColorObj)) {
         Loop 16 {
             custColor := RGB_BGR(custColorObj[A_Index])
             NumPut "UInt", custColor, CUSTOM, (A_Index-1) * 4
         }
     }
-    
+
     NumPut "UInt", CHOOSECOLOR.size, CHOOSECOLOR, 0             ; lStructSize
     NumPut "UPtr", hwnd,             CHOOSECOLOR, p             ; hwndOwner
     NumPut "UInt", RGB_BGR(color),   CHOOSECOLOR, 3 * p         ; rgbResult
     NumPut "UPtr", CUSTOM.ptr,       CHOOSECOLOR, 4 * p         ; lpCustColors
     NumPut "UInt", disp,             CHOOSECOLOR, 5 * p         ; Flags
-    
+
     if !DllCall("comdlg32\ChooseColor", "UPtr", CHOOSECOLOR.ptr, "UInt")
         return -1
-    
+
     custColorObj := []
     Loop 16 {
         newCustCol := NumGet(CUSTOM, (A_Index-1) * 4, "UInt")
         custColorObj.InsertAt(A_Index, RGB_BGR(newCustCol))
     }
-    
+
     Color := NumGet(CHOOSECOLOR, 3 * A_PtrSize, "UInt")
     return Format("0x{:06X}",RGB_BGR(color))
-    
+
     RGB_BGR(c) {
         return ((c & 0xFF) << 16 | c & 0xFF00 | c >> 16)
     }
@@ -2414,47 +2438,47 @@ ColorSelect(Color := 0, hwnd := 0, &custColorObj := "",disp:=false) {
 FontSelect(fObj:="", hwnd:=0, Effects:=true) {
     Static _temp := {name:"", size:10, color:0, strike:0, underline:0, italic:0, bold:0}
     Static p := A_PtrSize, u := StrLen(Chr(0xFFFF)) ; u = IsUnicode
-    
+
     fObj := (fObj="") ? _temp : fObj
-    
+
     If (StrLen(fObj.name) > 31)
         throw Error("Font name length exceeds 31 characters.")
-        
+
     LOGFONT := Buffer(!u ? 60 : 96,0) ; LOGFONT size based on IsUnicode, not A_PtrSize
     hDC := DllCall("GetDC","UPtr",0)
     LogPixels := DllCall("GetDeviceCaps","UPtr",hDC,"Int",90)
     Effects := 0x041 + (Effects ? 0x100 : 0)
     DllCall("ReleaseDC", "UPtr", 0, "UPtr", hDC) ; release DC
-    
+
     fObj.bold := fObj.bold ? 700 : 400
     fObj.size := Floor(fObj.size*LogPixels/72)
-    
+
     NumPut "uint", fObj.size, LOGFONT
     NumPut "uint", fObj.bold, "char", fObj.italic, "char", fObj.underline, "char", fObj.strike, LOGFONT, 16
     StrPut(fObj.name,LOGFONT.ptr+28)
-    
+
     CHOOSEFONT := Buffer((p=8)?104:60,0)
     NumPut "UInt", CHOOSEFONT.size,     CHOOSEFONT
     NumPut "UPtr", hwnd,                CHOOSEFONT, p
     NumPut "UPtr", LOGFONT.ptr,         CHOOSEFONT, (p*3)
     NumPut "UInt", effects,             CHOOSEFONT, (p*4)+4
     NumPut "UInt", RGB_BGR(fObj.color), CHOOSEFONT, (p*4)+8
-    
+
     r := DllCall("comdlg32\ChooseFont","UPtr",CHOOSEFONT.ptr) ; Font Select Dialog opens
-    
+
     if !r
         return false
-    
+
     fObj.Name := StrGet(LOGFONT.ptr+28)
     fObj.bold := ((b := NumGet(LOGFONT,16,"UInt")) <= 400) ? 0 : 1
     fObj.italic := !!NumGet(LOGFONT,20,"Char")
     fObj.underline := NumGet(LOGFONT,21,"Char")
     fObj.strike := NumGet(LOGFONT,22,"Char")
     fObj.size := Round(NumGet(CHOOSEFONT,p*4,"UInt") / 10)
-    
+
     c := NumGet(CHOOSEFONT,(p=4)?6*p:5*p,"UInt") ; convert from BGR to RBG for output
     fObj.color := Format("0x{:06X}",RGB_BGR(c))
-    
+
     str := ""
     str .= fObj.bold      ? "bold" : ""
     str .= fObj.italic    ? " italic" : ""
@@ -2462,10 +2486,10 @@ FontSelect(fObj:="", hwnd:=0, Effects:=true) {
     str .= fObj.color     ? " c" fObj.color : ""
     str .= fObj.size      ? " s" fObj.size : ""
     str .= fObj.underline ? " underline" : ""
-    
+
     fObj.str := "norm " Trim(str)
     return fObj
-    
+
     RGB_BGR(c) {
         return ((c & 0xFF) << 16 | c & 0xFF00 | c >> 16)
     }
@@ -2625,7 +2649,7 @@ GetMenuString(&OutputVar, hMenu, ItemPos) { ; Zero-based
     Local lpString
     OutputVar := ""
 
-    ; lpString := Buffer(4096, 0) ; V1toV2: if 'lpString' is a UTF-16 string, use 
+    ; lpString := Buffer(4096, 0) ; V1toV2: if 'lpString' is a UTF-16 string, use
     VarSetStrCapacity(&lpString, 4096)
     If !(DllCall("GetMenuString", "Ptr", hMenu, "UInt", ItemPos, "Str", lpString, "UInt", 4096, "UInt", 0x400)) {
         Return (GetMenuItemID(hMenu, ItemPos) > -1) ? "SEPARATOR" : "ERROR"
@@ -2731,7 +2755,7 @@ ControlGetLVHeaderInfo(hwndLV) {
     ; Accepts both the hwnd of listview as the hwnd of the header
     hwndHeader := SendMessage(0x101F, 0, 0,, "ahk_id " hwndLV) ; LVM_GETHEADER
     hwndHeader := (hwndHeader=0) ? hwndLV : hwndHeader
-    
+
     PID := WinGetPID("ahk_id " hwndHeader)
 
     ; Open the process for read/write and query info.
@@ -2765,7 +2789,7 @@ ControlGetLVHeaderInfo(hwndLV) {
 
     HDInfo := []
     HDText := Buffer(MAX_TEXT_SIZE)
-    
+
     itemCount := SendMessage(0x1200, 0, 0,, "ahk_id " hwndHeader) ; HDM_GETITEMCOUNT
     Loop itemCount {
         ; Retrieve the item text.
@@ -2776,7 +2800,7 @@ ControlGetLVHeaderInfo(hwndLV) {
             HDInfo.Push({w: NumGet(HDITEM, 4, "UInt"), Text: StrGet(HDText)})
         } Catch{
             HDInfo.Push({w: 0, Text: ""})
-        }        
+        }
     }
 
     ; Release the remote memory and handle.
@@ -2856,4 +2880,90 @@ ControlGetAHKOptions(ObjectType, object_Style, object_ExStyle) {
     optionsBuffer :=StrReplace(optionsBuffer,"+-", "-")
 
     return optionsBuffer
+}
+
+Scintilla_SetAHKV2(ctl) {
+    ctl.CaseSense := false	; turn off case sense (for AHK), do this before setting keywords
+    kw1 := "Else If Continue Critical Break Goto Return Loop Read Reg Parse Files Switch Try Catch Finally Throw Until While For Exit ExitApp OnError OnExit Reload Suspend Thread"
+
+    kw2 := "Abs ASin ACos ATan BlockInput Buffer CallbackCreate CallbackFree CaretGetPos Ceil Chr Click ClipboardAll ClipWait ComCall ComObjActive ComObjArray ComObjConnect ComObject ComObjFlags ComObjFromPtr ComObjGet ComObjQuery ComObjType ComObjValue ComValue ControlAddItem ControlChooseIndex ControlChooseString ControlClick ControlDeleteItem ControlFindItem ControlFocus ControlGetChecked ControlGetChoice ControlGetClassNN ControlGetEnabled ControlGetFocus ControlGetHwnd ControlGetIndex ControlGetItems ControlGetPos ControlGetStyle ControlGetExStyle ControlGetText ControlGetVisible ControlHide ControlHideDropDown ControlMove ControlSend ControlSendText ControlSetChecked ControlSetEnabled ControlSetStyle ControlSetExStyle ControlSetText ControlShow ControlShowDropDown CoordMode Cos DateAdd DateDiff DetectHiddenText DetectHiddenWindows DirCopy DirCreate DirDelete DirExist DirMove DirSelect DllCall Download DriveEject DriveGetCapacity DriveGetFileSystem DriveGetLabel DriveGetList DriveGetSerial DriveGetSpaceFree DriveGetStatus DriveGetStatusCD DriveGetType DriveLock DriveRetract DriveSetLabel DriveUnlock Edit EditGetCurrentCol EditGetCurrentLine EditGetLine EditGetLineCount EditGetSelectedText EditPaste EnvGet EnvSet Exp FileAppend FileCopy FileCreateShortcut FileDelete FileEncoding FileExist FileInstall FileGetAttrib FileGetShortcut FileGetSize FileGetTime FileGetVersion FileMove FileOpen FileRead FileRecycle FileRecycleEmpty FileSelect FileSetAttrib FileSetTime Float Floor Format FormatTime GetKeyName GetKeyVK GetKeySC GetKeyState GetMethod GroupAdd GroupClose GroupDeactivate Gui GuiCtrlFromHwnd GuiFromHwnd HasBase HasMethod HasProp HotIf HotIfWinActive HotIfWinExist HotIfWinNotActive HotIfWinNotExist Hotkey Hotstring IL_Create IL_Add IL_Destroy ImageSearch IniDelete IniRead IniWrite InputBox InputHook InstallKeybdHook InstallMouseHook InStr Integer IsLabel IsObject IsSet IsSetRef KeyHistory KeyWait ListHotkeys ListLines ListVars ListViewGetContent LoadPicture Log Ln Map Max MenuBar Menu MenuFromHandle MenuSelect Min Mod MonitorGet MonitorGetCount MonitorGetName MonitorGetPrimary MonitorGetWorkArea MouseClick MouseClickDrag MouseGetPos MouseMove MsgBox Number NumGet NumPut ObjAddRef ObjRelease ObjBindMethod ObjHasOwnProp ObjOwnProps ObjGetBase ObjGetCapacity ObjOwnPropCount ObjSetBase ObjSetCapacity OnClipboardChange OnMessage Ord OutputDebug Pause Persistent PixelGetColor PixelSearch PostMessage ProcessClose ProcessExist ProcessSetPriority ProcessWait ProcessWaitClose Random RegExMatch RegExReplace RegDelete RegDeleteKey RegRead RegWrite Round Run RunAs RunWait Send SendText SendInput SendPlay SendEvent SendLevel SendMessage SendMode SetCapsLockState SetControlDelay SetDefaultMouseSpeed SetKeyDelay SetMouseDelay SetNumLockState SetScrollLockState SetRegView SetStoreCapsLockMode SetTimer SetTitleMatchMode SetWinDelay SetWorkingDir Shutdown Sin Sleep Sort SoundBeep SoundGetInterface SoundGetMute SoundGetName SoundGetVolume SoundPlay SoundSetMute SoundSetVolume SplitPath Sqrt StatusBarGetText StatusBarWait StrCompare StrGet String StrLen StrLower StrPut StrReplace StrSplit StrUpper SubStr SysGet SysGetIPAddresses Tan ToolTip TraySetIcon TrayTip Trim LTrim RTrim Type VarSetStrCapacity VerCompare WinActivate WinActivateBottom WinActive WinClose WinExist WinGetClass WinGetClientPos WinGetControls WinGetControlsHwnd WinGetCount WinGetID WinGetIDLast WinGetList WinGetMinMax WinGetPID WinGetPos WinGetProcessName WinGetProcessPath WinGetStyle WinGetExStyle WinGetText WinGetTitle WinGetTransColor WinGetTransparent WinHide WinKill WinMaximize WinMinimize WinMinimizeAll WinMinimizeAllUndo WinMove WinMoveBottom WinMoveTop WinRedraw WinRestore WinSetAlwaysOnTop WinSetEnabled WinSetRegion WinSetStyle WinSetExStyle WinSetTitle WinSetTransColor WinSetTransparent WinShow WinWait WinWaitActive WinWaitNotActive WinWaitClose"
+
+    kw3 := "Add AddActiveX AddButton AddCheckbox AddComboBox AddCustom AddDateTime AddDropDownList AddEdit AddGroupBox AddHotkey AddLink AddListBox AddListView AddMonthCal AddPicture AddProgress AddRadio AddSlider AddStandard AddStatusBar AddTab AddText AddTreeView AddUpDown Bind Check Choose Clear Clone Close Count DefineMethod DefineProp Delete DeleteCol DeleteMethod DeleteProp Destroy Disable Enable Flash Focus Get GetAddress GetCapacity GetChild GetClientPos GetCount GetNext GetOwnPropDesc GetParent GetPos GetPrev GetSelection GetText Has HasKey HasOwnMethod HasOwnProp Hide Insert InsertAt InsertCol Len Mark Maximize MaxIndex Minimize MinIndex Modify ModifyCol Move Name OnCommand OnEvent OnNotify Opt OwnMethods OwnProps Pop Pos Push RawRead RawWrite Read ReadLine ReadUInt ReadInt ReadInt64 ReadShort ReadUShort ReadChar ReadUChar ReadDouble ReadFloat Redraw RemoveAt Rename Restore Seek Set SetCapacity SetColor SetFont SetIcon SetImageList SetParts SetText Show Submit Tell ToggleCheck ToggleEnable Uncheck UseTab Write WriteLine WriteUInt WriteInt WriteInt64 WriteShort WriteUShort WriteChar WriteUChar WriteDouble WriteFloat"
+
+    kw4 := "AtEOF BackColor Base Capacity CaseSense ClassNN ClickCount Count Default Enabled Encoding Focused FocusedCtrl Gui Handle Hwnd Length MarginX MarginY MenuBar Name Pos Position Ptr Size Text Title Value Visible __Handle"
+
+    kw5 := "A_Space A_Tab A_Args A_WorkingDir A_InitialWorkingDir A_ScriptDir A_ScriptName A_ScriptFullPath A_ScriptHwnd A_LineNumber A_LineFile A_ThisFunc A_AhkVersion A_AhkPath A_IsCompiled A_YYYY A_MM A_DD A_MMMM A_MMM A_DDDD A_DDD A_WDay A_YDay A_YWeek A_Hour A_Min A_Sec A_MSec A_Now A_NowUTC A_TickCount A_IsSuspended A_IsPaused A_IsCritical A_ListLines A_TitleMatchMode A_TitleMatchModeSpeed A_DetectHiddenWindows A_DetectHiddenText A_FileEncoding A_SendMode A_SendLevel A_StoreCapsLockMode A_KeyDelay A_KeyDuration A_KeyDelayPlay A_KeyDurationPlay A_WinDelay A_ControlDelay A_MouseDelay A_MouseDelayPlay A_DefaultMouseSpeed A_CoordModeToolTip A_CoordModePixel A_CoordModeMouse A_CoordModeCaret A_CoordModeMenu A_RegView A_TrayMenu A_AllowMainWindow A_AllowMainWindow A_IconHidden A_IconTip A_IconFile A_IconNumber A_TimeIdle A_TimeIdlePhysical A_TimeIdleKeyboard A_TimeIdleMouse A_ThisHotkey A_PriorHotkey A_PriorKey A_TimeSinceThisHotkey A_TimeSincePriorHotkey A_EndChar A_EndChar A_MaxHotkeysPerInterval A_HotkeyInterval A_HotkeyModifierTimeout A_ComSpec A_Temp A_OSVersion A_Is64bitOS A_PtrSize A_Language A_ComputerName A_UserName A_WinDir A_ProgramFiles A_AppData A_AppDataCommon A_Desktop A_DesktopCommon A_StartMenu A_StartMenuCommon A_Programs A_ProgramsCommon A_Startup A_StartupCommon A_MyDocuments A_IsAdmin A_ScreenWidth A_ScreenHeight A_ScreenDPI A_Clipboard A_Cursor A_EventInfo A_LastError True False A_Index A_LoopFileName A_LoopRegName A_LoopReadLine A_LoopField this"
+
+    kw6 := "#ClipboardTimeout #DllLoad #ErrorStdOut #Hotstring #HotIf #HotIfTimeout #Include #IncludeAgain #InputLevel #MaxThreads #MaxThreadsBuffer #MaxThreadsPerHotkey #NoTrayIcon #Requires #SingleInstance #SuspendExempt #UseHook #Warn #WinActivateForce #If"
+
+    kw7 := "Global Local Static Class"
+
+    ctl.setKeywords(kw1, kw2, kw3, kw4, kw5, kw6, kw7)
+
+    ; ======================================================================
+
+    ; ctl.UseDirect := true ; the DLL uses the Direct Ptr for now
+    ; ctl.Wrap.LayoutCache := 3 ; speeds up window resize on large docs, but sometimes causes slower load times on large documents
+    ; ======================================================================
+    ; items that should be set by the user
+    ; ======================================================================
+    ctl.Brace.Chars := "[]{}()"	; modify braces list that will be tracked
+    ctl.SyntaxEscapeChar := "``"	; set this to "\" to load up CustomLexer.c, or to "``" to load an AHK script.
+    ctl.SyntaxCommentLine := ";"	; set this to "//" to load up CustomLexer.c, or to ";" to load an AHK script.
+
+    ; ======================================================================
+    ; Setting DLL punct and word chars:
+    ;
+    ; Below are the defaults for punct and word chars for the DLL.  Setting
+    ; punct and word chars for Scintilla has a different purpose and a
+    ; slightly different effect.  It's also kinda of squirrely.  Since it is
+    ; possible to use a direct pointer to parse Scintilla text I leave the
+    ; Scintilla defaults for punct and word chars alone.
+    ;
+    ; You'll notice that the punct defaults also contain braces, escape
+    ; chars, and of course " and '.  The search for punct chars happens
+    ; after searching for those other elements, and thus doesn't affect
+    ; how braces, strings, and escape chars function.
+    ;
+    ; For WordChars, since a variable or function must normally start with
+    ; a letter or underscore, only specify letters and underscore/pound sign
+    ; if desired.  Matching for digits in a "word" is done separately assuming
+    ; the first character of the "word" is not a digit.
+    ; ======================================================================
+    ; ctl.SyntaxPunctChars := "!`"$%&'()*+,-./:;<=>?@[\]^``{|}~"                      ; this is the default
+    ; ctl.SyntaxWordChars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_#" ; this is the default
+
+    ; ======================================================================
+    ; Simple to apply vertical colored lines at specified column - uncomment to test
+    ; ======================================================================
+    ; ctl.Edge.Mode := 3 ; vertical lines - handy!
+    ; ctl.Edge.Multi.Add(5,0xFF0000)
+    ; ctl.Edge.Multi.Add(10,0x00FF00)
+    ; ctl.Edge.Multi.Add(15,0x0000FF)
+    ; ctl.Edge.View := 1
+
+    ; ======================================================================
+    ; To see white space/CRLF/other special non-printing chars
+    ; ======================================================================
+    ; ctl.WhiteSpace.View := 1
+    ; ctl.LineEnding.View := 1
+    ; ======================================================================
+
+    ;ctl.callback := ctl_callback ; Adding a callback
+    ctl.CustomSyntaxHighlighting := true	; turns syntax highlighting on
+    ctl.AutoSizeNumberMargin := true
+    ; ctl.Target.Flags := Scintilla.sc_search.RegXP | Scintilla.sc_search.CXX11RegEx ; CXX11RegEx | POSIX
+
+    ; ======================================================================
+
+    ; ctl.Styling.Idle := 3 ; do NOT set this when using my syntax highlighting.  My syntax highlighting works differently.
+
+    ; ======================================================================
+    ; Set this to prevent unnecessary parsing and improve load time.  While
+    ; editing the document additional parsing must happen in order to
+    ; properly color the various elements of the document correctly when
+    ; adding/deleting/uncommenting text.  This value will automatically be
+    ; set to 0 after loading a document.
+    ; ======================================================================
+    ctl.loading := 1
 }
