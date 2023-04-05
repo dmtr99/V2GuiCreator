@@ -1,4 +1,4 @@
-#Requires AutoHotKey v2.0
+#Requires AutoHotKey v2.0-beta.3
 #SingleInstance Force
 
 ; #Include SetSystemCursor.ahk
@@ -752,6 +752,20 @@ CreateCGui_V2GuiCreator(){
             }
             PreCreateCtrl(ControlType, "", extraText)
             return
+        } else if (ControlType = "Toolbar"){
+            ; This should be restructured like the array menus, but this is already a good example how to build toolbars.
+            oG.Window.Toolbar := Array()
+            oG.Window.Toolbar.oName := "ogToolbar"
+            oG.Window.Toolbar.Code := 'ogToolbar.Add("", "Copy Code to clipboard", (*)=>(A_Clipboard:= "test"), "Shell32.dll" , 135)`n`r'
+            oG.Window.Toolbar.Code .= 'ogToolbar.Add("") `; Separator`n`r'
+            oG.Window.Toolbar.Code .= 'ogToolbar.Add("", "Copy Code to clipboard2", (*)=>(A_Clipboard:= "test2"), "Shell32.dll" , 140)`n`r'
+
+            oG.Window.Toolbar.x := 3
+            oG.Window.Toolbar.y := 3
+            oG.Window.Toolbar.w := 23
+            oG.Window.Toolbar.h := 400
+            GenerateCode()
+            return
         }
         PreCreateCtrl(ControlType,"")
     }
@@ -1128,6 +1142,18 @@ WorkGui_Import(*) {
             ; This is probably the tab, ControlGetText(controlHwnd) could be used to extract the first tab
             continue
         }
+        if (ClassNN ~= "^(ToolbarWindow321)"){
+            oG.Window.Toolbar := Array()
+            oG.Window.Toolbar.oName := "ogToolbar"
+            oG.Window.Toolbar.Code := 'ogToolbar.Add("", "Copy Code to clipboard", (*)=>(A_Clipboard:= "test"), "Shell32.dll" , 135)`n`r'
+            oG.Window.Toolbar.Code .= 'ogToolbar.Add("") `; Separator`n`r'
+            oG.Window.Toolbar.Code .= 'ogToolbar.Add("", "Copy Code to clipboard2", (*)=>(A_Clipboard:= "test2"), "Shell32.dll" , 140)`n`r'
+            oG.Window.Toolbar.x := ctrlX
+            oG.Window.Toolbar.y := ctrlY
+            oG.Window.Toolbar.w := ctrlWidth
+            oG.Window.Toolbar.h := ctrlHeight
+            continue
+        }
         if (ClassNN ~= "^(SysHeader)"){
             continue
         }
@@ -1305,7 +1331,6 @@ WorkGui_Import(*) {
     GenerateCode()
     return
 }
-
 
 GuiCtrl_Delete(GuiCtrlObj){
     if (oG.ControlList.Has(GuiCtrlObj.CtrlName)){
@@ -1696,7 +1721,10 @@ GenerateCode() {
         return
     }
     CRLF := "`n`r"
-    Header := "#SingleInstance Force" CRLF "#Requires AutoHotkey v2.0-a" CRLF CRLF
+    Header := "#SingleInstance Force" CRLF "#Requires AutoHotkey v2" CRLF CRLF
+    if (oG.Window.HasProp("ToolBar")){
+        Header .=  "#Include Lib\ToolBar.ah2" CRLF CRLF
+    }
     Indent := A_Tab
     ; Keep track of the active tab
     GuiTabCtrl := ""
@@ -1728,9 +1756,17 @@ GenerateCode() {
     Code .= (oG.Window.HasProp("BackColor") and oG.Window.BackColor != "") ? Indent oG.Window.oName '.BackColor := ' oG.Window.BackColor CRLF : ""
     Code .= CRLF
 
+    if (oG.Window.HasProp("ToolBar")){
+        Code .= Indent '`; Creating an example of the toolbar' CRLF
+        Code .= Indent oG.Window.Toolbar.oName ' := ToolBar()' CRLF
+        Code .= Indent StrReplace(oG.Window.Toolbar.Code, "`n", "`n" Indent)
+        Code .= 'AddToolbar(' oG.Window.Toolbar.oName ', ' oG.Window.oName ', , "x' oG.Window.Toolbar.x ' y' oG.Window.Toolbar.y ' h' oG.Window.Toolbar.h ' w' oG.Window.Toolbar.w '")' CRLF CRLF
+    }
+
     if (oG.ControlList.Count>0) {
         For Each, oControl in oG.ControlList{
             Text := oControl.Text
+
             if((!oControl.HasProp("ActiveTabCtrl") and GuiTabCtrl !="")){
                 Code .= Indent GuiTabCtrl '.UseTab()' CRLF
                 GuiTabCtrl :=  ""
