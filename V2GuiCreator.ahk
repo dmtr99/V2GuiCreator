@@ -714,18 +714,20 @@ CreateCGui_V2GuiCreator(){
             FileMenu.Add()
             FileMenu.Add("&Exit", (*) => (ExitApp))
             myMenuBar.Add("&File", FileMenu)
-
             WorkGui.MenuBar := myMenuBar
-            oG.Window.MenuBar := "
-            (
-            myMenuBar := MenuBar()
-            FileMenu := Menu()
-            FileMenu.Add("&Open ScriptDir", (*) => (Run(A_ScriptDir)))
-            FileMenu.Add("&Reload", (*) => (Reload()))
-            FileMenu.Add()
-            FileMenu.Add("&Exit", (*) => (ExitApp))
-            myMenuBar.Add("&File", FileMenu)
-            )"
+
+            oControl := Array()
+            oControl.oName := "myMenuBar"
+            oSubMenu := Array()
+            oSubMenu.name := "FileMenu"
+            oSubMenu.oName := "FileMenu"
+            oSubMenu.Push({name:"&Open ScriptDir", Callback: "(*) => (Run(A_ScriptDir))"})
+            oSubMenu.Push({name:"&Reload", Callback: "(*) => (Reload())"})
+            oSubMenu.Push("Separator")
+            oSubMenu.Push({name:"&Exit", Callback: "(*) => (ExitApp)"})
+            oControl.Push(oSubMenu)
+
+            oG.Window.MenuBar := oControl
             GenerateCode()
              return
         } else if (ControlType = "Custom") {
@@ -1831,7 +1833,7 @@ GenerateMenuCode(oMenu, Indent := "`t"){
         } else if (oMenuItem="Separator"){
             Code .= Indent MenuObjectName '.Add()' CRLF
         } else{
-            Code .= Indent MenuObjectName '.Add("' oMenuItem.name '",(ItemName, ItemPos, MyMenu)=>(MsgBox(ItemName)))' CRLF
+            Code .= Indent MenuObjectName '.Add("' oMenuItem.name '",' (oMenuItem.hasProp("CallBack") ? oMenuItem.callback : '(ItemName, ItemPos, MyMenu)=>(MsgBox(ItemName))') ')'  CRLF
         }
     }
     return Code
