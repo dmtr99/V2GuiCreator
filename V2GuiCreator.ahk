@@ -1,4 +1,4 @@
-#Requires AutoHotKey v2.0-beta.3
+#Requires AutoHotKey v2.0
 #SingleInstance Force
 
 ; #Include SetSystemCursor.ahk
@@ -695,12 +695,12 @@ CreateCGui_V2GuiCreator(){
             WorkGui_Create()
         }
         if(ControlType = "Statusbar"){
-            SB := WorkGui.AddStatusBar(,Default.%ControlType%.text)
+            ogSB := WorkGui.AddStatusBar(,Default.%ControlType%.text)
             oControl := Default.%ControlType%
             oControl.ControlType := ControlType
             oControl.CtrlName := "Control_" oG.ControlList.index
-            oControl.oName := "SB"
-            SB.CtrlName := oControl.CtrlName
+            oControl.oName := "ogSB"
+            ogSB.CtrlName := oControl.CtrlName
             oG.ControlList[oControl.CtrlName] := oControl
             oG.ControlList.index++
 
