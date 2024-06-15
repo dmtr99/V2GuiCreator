@@ -961,7 +961,6 @@ Gui_Select(title,text1,text2,achoices){
         return
     }
 }
-
 WorkGui_Create(*) {
 
     Global WorkGui, SelGui
@@ -1130,6 +1129,7 @@ WorkGui_Import(*) {
         ControlExStyle := ControlGetExStyle(controlHwnd)
         ControlText := ControlGetText(controlHwnd)
         ControlType := ControlStyle & 0xF
+
         ControlGetPos(&ctrlX, &ctrlY, &ctrlWidth, &ctrlHeight, controlHwnd)
         AhkName := TranslateClassName(ClassNN)
         Control_Type := ControlGetType(controlHwnd)
@@ -1714,7 +1714,6 @@ GuiCtrl_Properties(GuiCtrlObj) {
         GenerateCode()
     }
 }
-
 GenerateCode() {
     global
     if (!IsSet(WorkGui) or !IsObject(WorkGui)) {
@@ -1789,7 +1788,8 @@ GenerateCode() {
                 Text := InStr(Text,'"') ? "'" Text "'" :  '"' Text '"'
             }
 
-            Options := (oControl.HasProp("x") and oControl.x != "") ? "x" oControl.x : ""
+            Options := "v" oControl.oName
+            Options .= (oControl.HasProp("x") and oControl.x != "") ? " x" oControl.x : ""
             Options .= (oControl.HasProp("y") and oControl.y != "") ? " y" oControl.y : ""
             Options .= (oControl.HasProp("w") and oControl.w != "") ? " w" oControl.w : ""
             Options .= (oControl.HasProp("h") and oControl.h != "") ? " h" oControl.h : ""
@@ -1798,19 +1798,20 @@ GenerateCode() {
             Options := (Options = "") ? "" : '"' trim(Options) '"'
 
             Code .= (oControl.ControlType = "" or oControl.ControlType ~= "i)Gui|Toolbar") ? Indent "; " : Indent ; comment out not defined types
-            Code .=  oControl.oName ' := ' oG.Window.oName '.Add' oControl.ControlType '(' Options ', ' Text ')' CRLF
+            ; Code .=  oControl.oName ' := ' oG.Window.oName '.Add' oControl.ControlType '(' Options ', ' Text ')' CRLF
+            Code .=  oG.Window.oName '.Add' oControl.ControlType '(' Options ', ' Text ')' CRLF
             If (oControl.ControlType ~= "DropDownList|ComboBox" and oControl.HasProp("text") and oControl.text !=""){
-                Code .= Indent oControl.oName '.text := "' oControl.text '"' CRLF
+                Code .= Indent oG.Window.oName "['" oControl.oName "']" '.text := "' oControl.text '"' CRLF
             }
             if (oControl.ControlType="StatusBar" && oControl.HasProp("Sections")){
-                Code .= Indent oControl.oName ".SetParts("
+                Code .= Indent oG.Window.oName "['" oControl.oName "']" ".SetParts("
                 loop oControl.Sections.length-1 {
                     Code .= (A_Index!=1) ? "," : ""
                     Code .= oControl.Sections[A_Index].HasProp("Width") ? oControl.Sections[A_Index].Width : "100"
                 }
                 Code .= ")" CRLF
                 loop oControl.Sections.length{
-                    Code .= Indent oControl.oName '.SetText("' oControl.Sections[A_Index].text '", ' A_Index ')' CRLF
+                    Code .= Indent oG.Window.oName "['" oControl.oName "']" '.SetText("' oControl.Sections[A_Index].text '", ' A_Index ')' CRLF
                 }
             }
 
@@ -1821,11 +1822,11 @@ GenerateCode() {
                     }else{
                         Callback := '(' oEvent.Parameters ')=>()'
                     }
-                    Code .= Indent oControl.oName '.OnEvent("' EventName '", ' Callback ')' CRLF
+                    Code .= Indent oG.Window.oName "['" oControl.oName "']" '.OnEvent("' EventName '", ' Callback ')' CRLF
                 }
             }
             if (Substr(oControl.ControlType, 1, 3) = "tab") {
-                GuiTabCtrl := oControl.oName
+                GuiTabCtrl := oG.Window.oName "['" oControl.oName "']"
                 GuiTab := 1
             }
         }
@@ -2579,13 +2580,15 @@ TranslateClassName(ClassName) {
     AhkName := ""
     If (InStr(ClassName, "static")) {
         AhkName := "Text"
-    } Else If (InStr(ClassName, "button")) {
+    } Else If (InStr(ClassName, "TextBox")) {
+        AhkName := "Edit"
+    }  Else If (InStr(ClassName, "button")) {
         AhkName := "Button"
     } Else If (InStr(ClassName, "edit")) {
         AhkName := "Edit"
     } Else If (InStr(ClassName, "checkbox")) {
         AhkName := "CheckBox"
-    } Else If (InStr(ClassName, "group")) {
+    } Else If (InStr(ClassName, "group") or InStr(ClassName, "Frame")) {
         AhkName := "GroupBox"
     } Else If (InStr(ClassName, "radio")) {
         AhkName := "Radio"
